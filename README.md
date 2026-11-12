@@ -18,7 +18,7 @@ An End-to-End, Full-Stack MLOps project that leverages Unsupervised Machine Lear
 The machine learning pipeline is built with a modular, production-ready Object-Oriented design:
 1. **Data Pipeline:** Ingests the raw UNSW-NB15 CSV files, cleans NaN values, and applies `MinMaxScaler` and One-Hot Encoding.
 2. **PyTorch Autoencoder:** A deep neural network trained exclusively on benign traffic to learn the blueprint of normal network behavior.
-3. **Threshold Tuning Engine:** Establishes a baseline reconstruction loss (`0.0709`) and dynamically sets a rigid boundary (`0.08`) to catch simulated attacker footprints (e.g., unusual `sttl` values).
+3. **Threshold Tuning Engine:** Establishes a baseline reconstruction loss (`0.0709`) and dynamically sets a rigid boundary (`0.073`) to catch simulated attacker footprints (e.g., unusual `sttl` values).
 4. **API Backend:** A multi-file FastAPI architecture (`main.py`, `routes.py`, `services.py`, `schemas.py`) utilizing Pydantic for strict payload validation.
 5. **Frontend SOC Dashboard:** A Framer Motion-animated React dashboard powered by TailwindCSS to visualize system states (Secure vs. Critical Attack).
 

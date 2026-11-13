@@ -1,5 +1,6 @@
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
+import joblib
 
 def load_and_clean_data(filepath: str) -> pd.DataFrame:
 
@@ -16,9 +17,9 @@ def separate_normal_traffic(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 def preprocess_features(df_train: pd.DataFrame, df_test: pd.DataFrame):
-
     cat_cols_train = df_train.select_dtypes(include=['object', 'category', 'string']).columns.tolist()
     encoded_df_train = pd.get_dummies(df_train, columns=cat_cols_train)
+    
     cat_cols_test = df_test.select_dtypes(include=['object', 'category', 'string']).columns.tolist()
     encoded_df_test = pd.get_dummies(df_test, columns=cat_cols_test)
 
@@ -28,5 +29,6 @@ def preprocess_features(df_train: pd.DataFrame, df_test: pd.DataFrame):
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
 
+    joblib.dump(X_train.columns.tolist(), "../weights/expected_columns.pkl")
 
     return X_train_scaled, X_test_scaled, scaler

@@ -10,22 +10,30 @@ from schemas import TrafficInput, PredictionOutput
 INPUT_DIM = 65
 THRESHOLD = 0.073
 
-print("Loading model and scaler...")
+print("Loading model, scaler, and column map...")
 scaler = joblib.load("../weights/scaler.pkl")
+expected_columns = joblib.load("../weights/expected_columns.pkl") # Load columns
 
 model = DeepAnomalyAE(INPUT_DIM)
 model.load_state_dict(torch.load("../weights/autoencoder_model.pth"))
 model.eval()
 
 def predict_traffic(data: TrafficInput) -> PredictionOutput:
-
-    user_features = [data.sttl, data.ct_state_ttl, data.sbytes, data.dbytes, data.smean]
+    # 1. Create a zeroed dictionary for all 65 features
+    feature_dict = {col: 0.0 for col in expected_columns}
     
-    full_features = np.zeros((1, INPUT_DIM))
-    full_features[0, :5] = user_features
+    # 2. Inject user data into the exact correct keys
+    feature_dict['sttl'] = data.sttl
+    feature_dict['ct_state_ttl'] = data.ct_state_ttl
+    feature_dict['sbytes'] = data.sbytes
+    feature_dict['dbytes'] = data.dbytes
+    feature_dict['smean'] = data.smean
     
-    scaled_features = scaler.transform(full_features)
-
+    # 3. Convert to 1D array in the exact order the scaler expects
+    ordered_features = np.array([[feature_dict[col] for col in expected_columns]])
+    
+    # 4. Scale and predict
+    scaled_features = scaler.transform(ordered_features)
     tensor_features = torch.FloatTensor(scaled_features)
 
     with torch.no_grad():

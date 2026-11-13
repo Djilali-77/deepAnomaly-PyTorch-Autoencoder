@@ -1,11 +1,15 @@
 from fastapi import APIRouter
 from schemas import TrafficInput, PredictionOutput
-from services import predict_traffic
+from services import predict_traffic, metrics
 
 router = APIRouter()
 
+
 @router.post("/predict", response_model=PredictionOutput)
 def predict_anomaly(data: TrafficInput):
+    return predict_traffic(data)
 
-    result = predict_traffic(data)
-    return result
+
+@router.get("/metrics")
+def get_metrics():
+    return metrics

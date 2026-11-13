@@ -19,7 +19,10 @@ export default function TrafficForm({ onPredictionResult }) {
         setLoading(true);
         
         try {
-            const response = await fetch("http://127.0.0.1:8000/predict", {
+            // Use environment variable, fallback to localhost for local dev
+            const apiUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+            
+            const response = await fetch(`${apiUrl}/predict`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(formData)
@@ -33,7 +36,6 @@ export default function TrafficForm({ onPredictionResult }) {
             setLoading(false);
         }
     };
-
     return (
         <form onSubmit={handleSubmit} className="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl w-full">
             <h3 className="text-lg font-semibold text-slate-200 mb-5 border-b border-slate-700 pb-3">

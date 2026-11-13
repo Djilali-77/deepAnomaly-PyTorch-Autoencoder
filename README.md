@@ -1,4 +1,3 @@
-
 # 🛡️ DeepAnomaly: AI-Powered Network Security Dashboard
 
 ![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?logo=docker&logoColor=white)

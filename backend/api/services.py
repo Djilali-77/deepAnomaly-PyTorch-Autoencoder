@@ -1,49 +1,54 @@
-import torch
-import numpy as np
-import joblib
-import torch.nn as nn
+import json
 import sys
-sys.path.append('../src')
+
+import joblib
+import pandas as pd
+import torch
+import torch.nn as nn
+
+sys.path.append("../src")
 from model import DeepAnomalyAE
+from utils import apply_log_transform
 from schemas import TrafficInput, PredictionOutput
 
-INPUT_DIM = 65
-THRESHOLD = 0.073
-
-print("Loading model, scaler, and column map...")
+print("Loading model, scaler and preprocessing info...")
 scaler = joblib.load("../weights/scaler.pkl")
-expected_columns = joblib.load("../weights/expected_columns.pkl") # Load columns
+info = joblib.load("../weights/preprocessing_info.pkl")
+with open("../weights/metrics.json") as f:
+    metrics = json.load(f)
 
-model = DeepAnomalyAE(INPUT_DIM)
+COLUMNS = info["columns"]
+LOG_COLUMNS = info["log_columns"]
+MEDIANS = info["medians"]
+# The threshold comes from training, so the API and the training always agree
+THRESHOLD = metrics["threshold"]
+
+model = DeepAnomalyAE(len(COLUMNS))
 model.load_state_dict(torch.load("../weights/autoencoder_model.pth"))
 model.eval()
 
+
 def predict_traffic(data: TrafficInput) -> PredictionOutput:
-    # 1. Create a zeroed dictionary for all 65 features
-    feature_dict = {col: 0.0 for col in expected_columns}
-    
-    # 2. Inject user data into the exact correct keys
-    feature_dict['sttl'] = data.sttl
-    feature_dict['ct_state_ttl'] = data.ct_state_ttl
-    feature_dict['sbytes'] = data.sbytes
-    feature_dict['dbytes'] = data.dbytes
-    feature_dict['smean'] = data.smean
-    
-    # 3. Convert to 1D array in the exact order the scaler expects
-    ordered_features = np.array([[feature_dict[col] for col in expected_columns]])
-    
-    # 4. Scale and predict
-    scaled_features = scaler.transform(ordered_features)
+    # Start from a normal flow, then overwrite it with the 5 values the user typed
+    row = MEDIANS.copy()
+    row["sttl"] = data.sttl
+    row["ct_state_ttl"] = data.ct_state_ttl
+    row["sbytes"] = data.sbytes
+    row["dbytes"] = data.dbytes
+    row["smean"] = data.smean
+
+    # Same steps as training: same column order, log transform, then scaling
+    df_input = pd.DataFrame([row], columns=COLUMNS)
+    df_input = apply_log_transform(df_input, LOG_COLUMNS)
+    scaled_features = scaler.transform(df_input)
     tensor_features = torch.FloatTensor(scaled_features)
 
     with torch.no_grad():
         reconstructed = model(tensor_features)
-        loss_function = nn.MSELoss()
-        mse_loss = loss_function(reconstructed, tensor_features).item()
-    
-    is_anomaly = (mse_loss > THRESHOLD)
-    
+        mse_loss = nn.MSELoss()(reconstructed, tensor_features).item()
+
     return PredictionOutput(
-        is_anomaly=is_anomaly,
-        anomaly_score=mse_loss
+        is_anomaly=bool(mse_loss > THRESHOLD),
+        anomaly_score=mse_loss,
+        threshold=THRESHOLD,
     )

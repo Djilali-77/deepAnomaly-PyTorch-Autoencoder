@@ -11,3 +11,4 @@ class TrafficInput(BaseModel):
 class PredictionOutput(BaseModel):
     is_anomaly: bool
     anomaly_score: float
+    threshold: float

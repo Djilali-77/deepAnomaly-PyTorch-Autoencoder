@@ -1,13 +1,15 @@
-export default function MetricsView({ accuracy, precision, recall, f1 }) {
+export default function MetricsView({ accuracy, precision, recall, f1, roc_auc, fpr }) {
     const metrics = [
         { label: 'Accuracy', value: accuracy },
         { label: 'Precision', value: precision },
         { label: 'Recall', value: recall },
-        { label: 'F1-Score', value: f1 }
+        { label: 'F1-Score', value: f1 },
+        { label: 'ROC-AUC', value: roc_auc },
+        { label: 'False Positive Rate', value: fpr }
     ];
 
     return (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 w-full">
             {metrics.map((metric, idx) => (
                 <div key={idx} className="bg-slate-800 border border-slate-700 shadow-lg rounded-xl p-4 flex flex-col items-center justify-center transition-transform hover:scale-105">
                     <h3 className="text-slate-400 text-sm uppercase tracking-wider mb-1">{metric.label}</h3>

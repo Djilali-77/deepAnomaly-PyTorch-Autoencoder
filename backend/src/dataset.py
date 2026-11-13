@@ -15,8 +15,7 @@ class UNSWDataset(Dataset):
 
         return self.data[idx]
 
-def create_dataloader(data_array: np.ndarray, batch_size: int, shuffle: bool = True) -> DataLoader:
-
+def create_dataloader(data_array: np.ndarray, batch_size: int, shuffle: bool = False) -> DataLoader:
     unsdataset = UNSWDataset(data_array)
     data = DataLoader(
         dataset=unsdataset,
